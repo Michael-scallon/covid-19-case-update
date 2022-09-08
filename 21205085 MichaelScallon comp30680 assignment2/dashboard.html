@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Home</title>
+        <link rel = stylesheet type="text/css"
+    href ="pro.css"  >
+    <meta charset="UTF-8">
+    <style>
+        #divd{display:none;}
+        #diva2{display:none;}
+    </style>
+</head>
+
+<body>
+
+    <div class= "med4">
+        <div class = "med3">
+            <h2> Covid Details Project by Michael Scallon </h2>
+        </div>
+    </div>
+    
+    <div class ="med2">
+        <div class = "med"><p>The following page displays <br><br>Section 1: Details of vaccine rates and totals for the current week.<br>Section 2: Details of vaccine rates and totals for a chosen week.<br>Section 3: Covid rates per county<br>Section 4: The counties with the highest and lowest rates.</p></div>
+        <div id= "diva"  class = "med"></div>
+        <div class = "med">
+             <button onclick="change()">Change total/percentage</button>
+             <div id= "divc" ></div>
+        </div>
+    </div>
+
+    <div class ="med2">
+        <!-- for this to work a valid integer must be entered to prompt and then press show text/hide. shotext/hide text will not do anything until after a valid number is entered.-->
+        <div class= "med">
+            <button onclick="promptweek()">Enter week to show data</button>
+            <button onclick="reveal()">Show text/Hide text</button>
+            <button onclick="change2()">Change total/percentage</button>
+            <p><br>Enter a week and then click show text to see vaccine details for given week. <br>Data will not show unless both steps are followed.</p>
+        </div>
+        <div id= "diva2" class = "med"></div>
+        <div id = "divd" class = "med"></div>
+    </div>
+    
+    <div class = "med2">
+        <div class = "med">
+            <p>Select a county to see covid 19 case numbers<br></p>
+            <select id = "divf"></select>
+            <button type="button" onclick="myFunction444()">Select County</button>
+            <div id = "divx"></div>
+        </div>
+    
+        <div class = "med">
+            <p>Select a county to see covid 19 case numbers<br></p>            
+            <select id = "divf2"></select>
+            <button type="button" onclick="myFunction445()">Select County</button>
+            <div id = "divx2"></div>
+        </div>
+    
+        <div class = "med"  >
+            <p>Select a county to see covid 19 case numbers<br></p>
+            <select id = "divf3"></select>
+            <button type="button" onclick="myFunction446()">Select County</button>
+        
+            <div id = "divx3" ></div>
+        </div>
+    </div>
+    
+    <div class= "med4">
+        <div class = "med3">
+            <div id = "divz"></div>
+            <div id = "divz2"></div>
+        </div>
+    </div>
+<script>
+
+var weekvac;
+var xmlhttp = new XMLHttpRequest();
+var url = "https://services-eu1.arcgis.com/z6bHNio59iTqqSUY/arcgis/rest/services/COVID19_Weekly_Vaccination_Figures/FeatureServer/0/query?where=1%3D1&outFields=Week,TotalweeklyVaccines,Moderna,Pfizer,Janssen,AstraZeneca,Fully_Age10to19,Fully_Age20to29,Fully_Age30to39,Fully_Age40to49,Fully_Age50to59,Fully_Age60to69,Fully_Age70to79,Fully_Age80_,FullyPer_Age10to19,FullyPer_Age20to29,FullyPer_Age30to39,FullyPer_Age40to49,FullyPer_Age50to59,FullyPer_Age60to69,FullyPer_Age70to79,FullyPer_80_&outSR=4326&f=json";
+    
+<!-- all totals of age groups in global variable form, applies to current week part 1-->
+var ten19gv;
+var twenty29gv; 
+var thirty39gv;
+var forty49gv;
+var fifty59gv;
+var sixty69gv;
+var seventy79gv;
+var eightygv;
+    
+<!-- all percentages of age groups in global variable form, applies to current week part 1 -->
+var ten19pergv;    
+var twenty29pergv;    
+var thirty39pergv;
+var forty49pergv;
+var fifty59pergv;
+var sixty69pergv; 
+var seventy79pergv;
+var eighty100pergv;
+
+<!-- all vaccine infomation in  global variable form, applies to current week part 2 -->
+var totalvacweekgv;
+var currentweekvac1gv;
+var currentweekmoderna1gv;    
+var currentweekPfizer1gv;    
+var currentweekJanssen1gv; 
+var currentweekAstraZeneca1gv;
+
+<!-- all totals of age groups in global variable form, applies to current week part 2-->    
+var ten19wgv;
+var twenty29wgv; 
+var thirty39wgv;    
+var forty49wgv;    
+var fifty59wgv;    
+var sixty69wgv;    
+var seventy79wgv;    
+var eightywgv;
+    
+<!-- all percentages of age groups in global variable form, applies to current week part 2 -->    
+var ten19perwgv;   
+var twenty29perwgv;    
+var thirty39perwgv;
+var forty49perwgv;
+var fifty59perwgv;
+var sixty69perwgv; 
+var seventy79perwgv;
+var eighty100perwgv;    
+
+<!-- variable to take a week number for prompt week function -->    
+var weekno;
+    
+<!-- variables used in part 3 and 4 -->  
+var countynames1gv;    
+var countynamezz = "County : ";   
+var popcounty = " Population of county: ";    
+var confirmedcases = " Confirmed cases: ";
+var ppc = " Population proportional COVID cases: "    
+var per1000 = " Cases per 100,000 people: "    
+var brek = "<br>" 
+  
+xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+         
+        var parsedObj = JSON.parse(xmlhttp.responseText);     
+        displayJSON1(parsedObj); 
+    }
+};
+     
+xmlhttp.open("GET", url, true);
+xmlhttp.send();
+function displayJSON1(obj)  {
+   
+    var totalvac= 0;
+
+    weekvac = obj.features;
+   
+    for (var i=1;i<weekvac.length; i++){
+    var variable = weekvac[i].attributes.TotalweeklyVaccines;
+    totalvac += parseInt(variable);}
+    
+    var currentweekvac = weekvac[weekvac.length -1].attributes.TotalweeklyVaccines;
+    
+    var currentweekmoderna = weekvac[weekvac.length -1].attributes.Moderna;
+    
+    var currentweekPfizer = weekvac[weekvac.length -1].attributes.Pfizer;
+    
+    var currentweekJanssen = weekvac[weekvac.length -1].attributes.Janssen;
+    
+    var currentweekAstraZeneca = weekvac[weekvac.length -1].attributes.AstraZeneca;
+       
+    document.getElementById("diva").innerHTML = "Total vaccinations to current date: " + totalvac + "<br><br>*Total of each type of vaccination to current date " +  "<br><br>Total this week:  "+currentweekvac + " <br> Total Moderna this week:  " + currentweekmoderna + "<br> Total Pfizer this week:  " + currentweekPfizer + "<br> Total Janssen this week:  " + currentweekJanssen + "<br> Total AstraZeneca this week:  " + currentweekAstraZeneca; 
+    
+    <!-- didnt realise there was a cumulative field so numbers were calculated by adding all previous weeks up for each age-->
+    
+    var ten19 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable1 = weekvac[i].attributes.Fully_Age10to19;
+    ten19 += parseInt(agevariable1);}
+    ten19gv = ten19;
+    
+    var twenty29 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable2 = weekvac[i].attributes.Fully_Age20to29;
+    twenty29 += parseInt(agevariable2);}
+    twenty29gv = twenty29
+    
+    var thirty39 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable3 = weekvac[i].attributes.Fully_Age30to39;
+    thirty39 += parseInt(agevariable3);}
+    thirty39gv = thirty39;
+    
+    var forty49 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable4 = weekvac[i].attributes.Fully_Age40to49;
+    forty49 += parseInt(agevariable4);}
+    forty49gv= forty49;
+    
+    var fifty59 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable5 = weekvac[i].attributes.Fully_Age50to59;
+    fifty59 += parseInt(agevariable5);}
+    fifty59gv =fifty59;
+    
+    var sixty69 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable6 = weekvac[i].attributes.Fully_Age60to69;
+    sixty69 += parseInt(agevariable6);}
+    sixty69gv = sixty69;
+    
+    var seventy79 = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable7 = weekvac[i].attributes.Fully_Age70to79;
+    seventy79 += parseInt(agevariable7);}
+    seventy79gv = seventy79;
+    
+    var eighty = 0;    
+    for (var i=1;i<weekvac.length; i++){
+    var agevariable8 = weekvac[i].attributes.Fully_Age80_;
+    eighty += parseInt(agevariable8);}
+    eightygv = eighty;
+   
+    document.getElementById("divc").innerHTML = "<br>*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19gv + "<br> Aged twenty to twenty nine: " + twenty29gv + "<br> Aged thirty to thirty nine: " + thirty39gv + "<br> Aged forty to forty nine: " + forty49gv + "<br> Aged fifty to fifty nine: " + fifty59gv + "<br> Aged sixty to sixty nine: " + sixty69gv + "<br> Aged seventy to seventy nine: " + seventy79gv + "<br> Aged eighty plus: " + eightygv ;  
+
+    var ten19per = weekvac[weekvac.length -1].attributes.FullyPer_Age10to19;
+    ten19pergv = (ten19per * 100);
+    
+    var twenty29per = weekvac[weekvac.length -1].attributes.FullyPer_Age20to29;
+    twenty29pergv = (twenty29per * 100);
+    
+    var thirty39per = weekvac[weekvac.length -1].attributes.FullyPer_Age30to39;
+    thirty39pergv = (thirty39per * 100);
+    
+    var forty49per = weekvac[weekvac.length -1].attributes.FullyPer_Age40to49;
+    forty49pergv = (forty49per * 100);
+    
+    var fifty59per = weekvac[weekvac.length -1].attributes.FullyPer_Age50to59;
+    fifty59pergv = (fifty59per * 100);
+    
+    var sixty69per = weekvac[weekvac.length -1].attributes.FullyPer_Age60to69;
+    sixty69pergv = (sixty69per * 100);
+    
+    var seventy79per = weekvac[weekvac.length -1].attributes.FullyPer_Age70to79;
+    seventy79pergv = (seventy79per * 100);
+    
+    var eighty100per = weekvac[weekvac.length -1].attributes.FullyPer_80_;
+    eighty100pergv = (eighty100per * 100);    
+
+} 
+   
+function promptweek(){
+    var person = prompt("Enter week", "integer up to current week: " + (parseInt(weekvac.length)-1) );
+    weekno = parseInt(person);
+
+    var totalvacweek =0 ;
+    for (var i=1;i< weekno + 1; i++){
+    var vactoweek = weekvac[i].attributes.TotalweeklyVaccines;
+    totalvacweek += parseInt(vactoweek);}
+    totalvacweekgv = totalvacweek;
+    
+    var currentweekvac1 = weekvac[weekno].attributes.TotalweeklyVaccines;
+    currentweekvac1gv = currentweekvac1;
+        
+    var currentweekmoderna1 = weekvac[weekno].attributes.Moderna;
+    currentweekmoderna1gv = currentweekmoderna1;
+    
+    var currentweekPfizer1 = weekvac[weekno].attributes.Pfizer;
+    currentweekPfizer1gv = currentweekPfizer1;
+    
+    var currentweekJanssen1 = weekvac[weekno].attributes.Janssen;
+    currentweekJanssen1gv = currentweekJanssen1;
+    
+    var currentweekAstraZeneca1 = weekvac[weekno].attributes.AstraZeneca;
+    currentweekAstraZeneca1gv = currentweekAstraZeneca1;
+    
+    var ten19w = 0;    
+    for (var i=1;i<weekno + 1; i++){
+    var agevariable1w = weekvac[i].attributes.Fully_Age10to19;
+    ten19w += parseInt(agevariable1w);}
+    ten19wgv = ten19w;
+    
+    var twenty29w = 0;    
+    for (var i=1;i<weekno + 1; i++){
+    var agevariable2w = weekvac[i].attributes.Fully_Age20to29;
+    twenty29w += parseInt(agevariable2w);}
+    twenty29wgv = twenty29w;
+    
+    var thirty39w = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable3w = weekvac[i].attributes.Fully_Age30to39;
+    thirty39w += parseInt(agevariable3w);}
+    thirty39wgv = thirty39w;
+    
+    var forty49w = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable4w = weekvac[i].attributes.Fully_Age40to49;
+    forty49w += parseInt(agevariable4w);}
+    forty49wgv= forty49w;
+    
+    var fifty59w = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable5w = weekvac[i].attributes.Fully_Age50to59;
+    fifty59w += parseInt(agevariable5w);}
+    fifty59wgv =fifty59w;
+    
+    var sixty69w = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable6w = weekvac[i].attributes.Fully_Age60to69;
+    sixty69w += parseInt(agevariable6w);}
+    sixty69wgv = sixty69w;
+    
+    var seventy79w = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable7w = weekvac[i].attributes.Fully_Age70to79;
+    seventy79w += parseInt(agevariable7w);}
+    seventy79wgv = seventy79w;
+    
+    var eightyw = 0;    
+    for (var i=1;i<weekno; i++){
+    var agevariable8w = weekvac[i].attributes.Fully_Age80_;
+    eightyw += parseInt(agevariable8w);}
+    eightywgv = eightyw;
+    
+    var ten19perw = weekvac[weekno].attributes.FullyPer_Age10to19;
+    ten19perwgv = (ten19perw * 100);
+    
+    var twenty29perw = weekvac[weekno].attributes.FullyPer_Age20to29;
+    twenty29perwgv = (twenty29perw * 100);
+    
+    var thirty39perw = weekvac[weekno].attributes.FullyPer_Age30to39;
+    thirty39perwgv = (thirty39perw * 100);
+    
+    var forty49perw = weekvac[weekno].attributes.FullyPer_Age40to49;
+    forty49perwgv = (forty49perw * 100);
+    
+    var fifty59perw = weekvac[weekno].attributes.FullyPer_Age50to59;
+    fifty59perwgv = (fifty59perw * 100);
+    
+    var sixty69perw = weekvac[weekno].attributes.FullyPer_Age60to69;
+    sixty69perwgv = (sixty69perw * 100);
+    
+    var seventy79perw = weekvac[weekno].attributes.FullyPer_Age70to79;
+    seventy79perwgv = (seventy79perw * 100);
+    
+    var eighty100perw = weekvac[weekno].attributes.FullyPer_80_;
+    eighty100perwgv = (eighty100perw * 100); 
+    
+    
+    document.getElementById("diva2").innerHTML="Total vaccinations to current week " + totalvacweekgv + "<br><br>*Total of each type of vaccination to current date " + "<br><br>Total this week:  " + currentweekvac1gv + " <br> Total Moderna this week:  " + currentweekmoderna1gv + "<br> Total Pfizer this week:  " + currentweekPfizer1gv + "<br> Total Janssen this week:  " + currentweekJanssen1gv + "<br> Total AstraZeneca this week:  " + currentweekAstraZeneca1gv;
+    
+    
+    document.getElementById("divd").innerHTML="*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19wgv + "<br> Aged twenty to twenty nine: " + twenty29wgv + "<br> Aged thirty to thirty nine: " + thirty39wgv + "<br> Aged forty to forty nine: " + forty49wgv + "<br> Aged fifty to fifty nine: " + fifty59wgv + "<br> Aged sixty to sixty nine: " + sixty69wgv + "<br> Aged seventy to seventy nine: " + seventy79wgv + "<br> Aged eighty plus: " + eightywgv;  } 
+    
+function change (){
+    var w = document.getElementById("divc");
+
+    if(w.innerHTML === "<br>*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19gv + "<br> Aged twenty to twenty nine: " + twenty29gv + "<br> Aged thirty to thirty nine: " + thirty39gv + "<br> Aged forty to forty nine: " + forty49gv + "<br> Aged fifty to fifty nine: " + fifty59gv + "<br> Aged sixty to sixty nine: " + sixty69gv + "<br> Aged seventy to seventy nine: " + seventy79gv + "<br> Aged eighty plus: " + eightygv) 
+{
+    
+    w.innerHTML = "<br>*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19pergv.toFixed(2) + "%<br> Aged twenty to twenty nine: " + twenty29pergv.toFixed(2) + "%<br> Aged thirty to thirty nine: " + thirty39pergv.toFixed(2) + "%<br> Aged forty to forty nine: " + forty49pergv.toFixed(2) + "%<br> Aged fifty to fifty nine: " + fifty59pergv.toFixed(2) + "%<br> Aged sixty to sixty nine: " + sixty69pergv.toFixed(2) + "%<br> Aged seventy to seventy nine: " + seventy79pergv.toFixed(2) + "%<br> Aged eighty plus: " + eighty100pergv.toFixed(2) + "%";
+}  
+    else
+{
+    w.innerHTML = "<br>*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19gv + "<br> Aged twenty to twenty nine: " + twenty29gv + "<br> Aged thirty to thirty nine: " + thirty39gv + "<br> Aged forty to forty nine: " + forty49gv + "<br> Aged fifty to fifty nine: " + fifty59gv + "<br> Aged sixty to sixty nine: " + sixty69gv + "<br> Aged seventy to seventy nine: " + seventy79gv + "<br> Aged eighty plus: " + eightygv;
+}
+      
+}
+<!-- The code on blocking and revealing is adapted from praticle 4 solution 5 -->
+ 
+    function reveal()
+{   
+
+    if (divd.style.display === "block")
+    {
+        divd.style.display = "none";
+    }
+    else
+    {
+        divd.style.display = "block";
+    }
+
+        if (diva2.style.display === "block")
+    {
+        diva2.style.display = "none";
+    }
+    else
+    {
+        diva2.style.display = "block";
+    }
+     
+}  
+    
+function change2(){
+    var v = document.getElementById("divd");
+    
+    if(v.innerHTML === "*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19wgv + "<br> Aged twenty to twenty nine: " + twenty29wgv + "<br> Aged thirty to thirty nine: " + thirty39wgv + "<br> Aged forty to forty nine: " + forty49wgv + "<br> Aged fifty to fifty nine: " + fifty59wgv + "<br> Aged sixty to sixty nine: " + sixty69wgv + "<br> Aged seventy to seventy nine: " + seventy79wgv + "<br> Aged eighty plus: " + eightywgv) 
+{
+    
+    v.innerHTML ="*Fully vaccinated per age group" + "<br> Aged ten to nineteen: " + ten19perwgv.toFixed(2) + "%<br> Aged twenty to twenty nine: " + twenty29perwgv.toFixed(2) + "%<br> Aged thirty to thirty nine: " + thirty39perwgv.toFixed(2) + "%<br> Aged forty to forty nine: " + forty49perwgv.toFixed(2) + "%<br> Aged fifty to fifty nine: " + fifty59perwgv.toFixed(2) + "%<br> Aged sixty to sixty nine: " + sixty69perwgv.toFixed(2) + "%<br> Aged seventy to seventy nine: " + seventy79perwgv.toFixed(2) + "%<br> Aged eighty plus: " + eighty100perwgv.toFixed(2) + "%";
+}  
+    else
+{
+    v.innerHTML ="*Fully vaccinated per age group" +"<br> Aged ten to nineteen: " + ten19wgv + "<br> Aged twenty to twenty nine: " + twenty29wgv + "<br> Aged thirty to thirty nine: " + thirty39wgv + "<br> Aged forty to forty nine: " + forty49wgv + "<br> Aged fifty to fifty nine: " + fifty59wgv + "<br> Aged sixty to sixty nine: " + sixty69wgv + "<br> Aged seventy to seventy nine: " + seventy79wgv + "<br> Aged eighty plus: " + eightywgv;}
+}    
+        
+var countyvac;  
+var xmlhttp2 = new XMLHttpRequest();
+var url2 = "https://services1.arcgis.com/eNO7HHeQ3rUcBllm/arcgis/rest/services/Covid19CountyStatisticsHPSCIrelandOpenData/FeatureServer/0/query?where=1%3D1&outFields=CountyName,PopulationCensus16,ConfirmedCovidCases,PopulationProportionCovidCases&outSR=4326&f=json" ;   
+   
+    
+xmlhttp2.onreadystatechange = function() {
+    if (xmlhttp2.readyState == 4 && xmlhttp2.status == 200) {
+         
+        var parsedObj2 = JSON.parse(xmlhttp2.responseText);     
+        displayJSON2(parsedObj2); 
+    }
+};
+     
+xmlhttp2.open("GET", url2, true);
+xmlhttp2.send();    
+   
+function displayJSON2(obj)  {
+countyvac = obj.features;     
+        
+    var county1names = " ";
+
+    var biggest = 0;
+    var biggest_name= " ";
+    
+    var lowest = 100000;
+    var lowest_name = " ";
+    
+    for (var i=0;i< 26 ; i++){
+    var cname =  countyvac[i].attributes.CountyName;
+    var ccp = countyvac[i].attributes.PopulationCensus16;
+    var ccc = countyvac[i].attributes.ConfirmedCovidCases;
+    var ccppc = countyvac[i].attributes.PopulationProportionCovidCases;    
+        
+    if(ccppc > biggest){biggest = ccppc.toFixed(0),biggest_name=cname };    
+    if(ccppc < lowest){lowest = ccppc.toFixed(0),lowest_name=cname };    
+    
+    county1names += "<option value="+ "'" + countynamezz + cname + brek + popcounty + ccp + brek + confirmedcases + ccc + brek + ppc + ccppc.toFixed(0) + brek  + per1000 + ccppc.toFixed(0) + "'" + ">" + cname + "</option>"
+
+    };
+
+    countynames1gv = county1names;
+    
+    document.getElementById("divf").innerHTML =  countynames1gv;
+    document.getElementById("divf2").innerHTML =  countynames1gv; 
+    document.getElementById("divf3").innerHTML =  countynames1gv;  
+    document.getElementById("divz").innerHTML = "County with highest cases per 100,000: "+ biggest_name + " with  " +biggest+ " per 100,000";
+    document.getElementById("divz2").innerHTML = "<br>" + "County with lowest cases per 100,000: "+ lowest_name + " with  " +lowest+ " per 100,000";
+};    
+   
+function myFunction444() {
+  var x = document.getElementById("divf").selectedIndex;
+  aaa= (document.getElementsByTagName("option")[x].value);
+  document.getElementById("divx").innerHTML = aaa;  
+}    
+    
+    
+function myFunction445() {
+  var x = document.getElementById("divf2").selectedIndex;
+  aaa= (document.getElementsByTagName("option")[x].value);
+  document.getElementById("divx2").innerHTML = aaa;  
+}
+    
+function myFunction446() {
+  var x = document.getElementById("divf3").selectedIndex;
+  aaa= (document.getElementsByTagName("option")[x].value);
+  document.getElementById("divx3").innerHTML = aaa;  
+}    
+      
+</script>
+</body>
+
+</html>
